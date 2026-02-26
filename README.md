@@ -36,7 +36,7 @@ The project uses a custom **TinyRes28_ESP32** architecture designed for the stri
 *   **Input Shape:** $28 \times 28 \times 1$ (Grayscale)
 *   **Quantization:** Full INT8 (Per-Channel Symmetric)
 *   **Layers:** Depthwise Separable Convolutions + Residual (Skip) Connections.
-*   **Memory Footprint:** ~33KB TFLite model, ~120KB Tensor Arena.
+*   **Memory Footprint:** ~53KB TFLite model, ~120KB Tensor Arena.
 
 ---
 
