@@ -54,6 +54,12 @@ The project uses a custom **TinyRes28_ESP32** architecture designed for the stri
     python img_test.py
     ```
 
+### ESP Pinout
+1. Servo : GPIO 18
+2. Potentiometer : GPIO 34 (ADC1_6)
+3. Wi-Fi: Standard ESP32 Wi-Fi (2.4GHz)
+**Note:** You will see if the esp is connected to the wifi or not in the serial monitor. If you are not using the monitor, the led (GPIO 2) will blink twice after the init blink to indicate successful Wi-Fi connection else just once to indicate failure.
+
 ---
 
 ## v0.2.0 Highlights
