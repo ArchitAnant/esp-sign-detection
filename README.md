@@ -5,7 +5,7 @@ A low-latency, real-time sign language recognition system powered by **TensorFlo
 
 ## Overview
 
-The system recognizes static hand signs (currently optimized for classes **A, Q, and T**) with high precision by offloading computer vision tasks to a host while performing the core AI classification on a microcontroller.
+The system recognizes static hand signs (currently optimized for classes **A, C, Q, and T**) with high precision by offloading computer vision tasks to a host while performing the core AI classification on a microcontroller. Servo actions mirror each class for instant haptic feedback: `A → 0°`, `C → 90°`, `Q → 180°`, and `T` performs a `0° → 180°` sweep.
 
 ### System Architecture
 1.  **Laptop (Python/MediaPipe):** Captures webcam video, detects hand landmarks, crops the hand ROI, and normalizes the image to a $28 \times 28$ grayscale patch.
@@ -56,6 +56,14 @@ The project uses a custom **TinyRes28_ESP32** architecture designed for the stri
 
 ---
 
+## v0.2.0 Highlights
+
+*   **Accuracy bump:** Improved training pipeline now yields ~80% accuracy under consistent indoor lighting once quantized to INT8.
+*   **On-device tuning:** Added a board-mounted potentiometer that shifts the post-softmax confidence threshold, enabling in-field sensitivity adjustments without reflashing.
+*   **Servo-linked classes:** Expanded inference targets to `A, C, Q, T`, each mapped to deterministic servo positions for easier debugging.
+
+---
+
 ## Performance Features
 
 *   **Manual 16-byte Alignment:** Prevents memory allocation crashes in TFLite Micro's `SingleArenaBufferAllocator`.
@@ -65,8 +73,6 @@ The project uses a custom **TinyRes28_ESP32** architecture designed for the stri
 
 ---
 ## Future 
-- The PyTorch/TFLite model has a very good confidence score for each class, which drops significalty on the header file model on ESP.
-
-- Currently the model just classifies A, Q and T. We can train for more classes and even try increasing the model complexity to classifiy more classes.
+- Currently the model classifies A, C, Q and T. We can train for more classes and even try increasing the model complexity to classifiy more classes.
 
 - We can port the Image Capturing + Preprocessing code from python to an SoC but would require another ESP32-Cam board (Out of scope for this project).
