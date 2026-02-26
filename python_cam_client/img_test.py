@@ -9,7 +9,7 @@ from PIL import Image
 from torchvision import transforms
 
 
-TARGET_ADDR: Tuple[str, int] = ("10.194.160.71", 5005) # Change according to ESP IP
+TARGET_ADDR: Tuple[str, int] = ("10.10.10.10", 5005) # Change according to ESP IP
 FRAME_SHAPE: Tuple[int, int] = (28, 28) 
 
 INPUT_SCALE = 0.007843137718737125

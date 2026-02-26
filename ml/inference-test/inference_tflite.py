@@ -8,7 +8,7 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
-TFLITE_MODEL_PATH = "models/res_28_int8-12.tflite"
+TFLITE_MODEL_PATH = "models/gesture_model_esp32-16.tflite"
 
 IDX_TO_CLASS: Dict[int, str] = {
     0: "A",
