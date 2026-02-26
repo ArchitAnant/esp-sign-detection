@@ -28,10 +28,9 @@ class PerImageNormalize(object):
 val_transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((28, 28)),
-    transforms.ToTensor(),
-    PerImageNormalize(),
+    transforms.ToTensor(), # Scales to [0.0, 1.0]
+    transforms.Normalize(mean=[0.5], std=[0.5]) # Shifts to [-1.0, 1.0]
 ])
-
 
 def extract_bbox(hand_landmarks, frame_shape, padding: int = 40) -> Tuple[int, int, int, int]:
     height, width, _ = frame_shape
@@ -70,11 +69,11 @@ def show_debug_view(tensor: torch.Tensor) -> None:
 
 
 def build_payload_from_roi(roi_bgr: np.ndarray) -> bytes:
-    processed_tensor = preprocess_roi(roi_bgr)
-    show_debug_view(processed_tensor)
-    quantized = quantize_tensor(processed_tensor)
+    gray = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2GRAY)
+    resized = cv2.resize(gray, (28, 28), interpolation=cv2.INTER_AREA)
+    
     header = bytes([0xAA, 0xBB])
-    return header + quantized.flatten().tobytes()
+    return header + resized.tobytes()
 
 
 def detect_hand_roi(frame: np.ndarray, hands) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int, int, int]]]:

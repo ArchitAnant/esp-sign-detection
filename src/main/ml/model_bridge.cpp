@@ -1,15 +1,16 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h" // Change this line
-#include "model_data_64_ftf.h"
+#include "gesture_model_data.h"
 #include "esp_log.h"
 #include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <math.h>
 #include <algorithm>
+#include "../poten/potentio.h"
 
 #define TAG "ML"
-#define NUM_CLASSES 3
+#define NUM_CLASSES 4
 
 constexpr int kTensorArenaSize = 120 * 1024;
 static uint8_t* aligned_arena = nullptr;
@@ -37,7 +38,7 @@ extern "C" void gesture_model_init() {
         ESP_LOGI(TAG, "Arena allocated. Raw: %p, Aligned: %p", raw_arena, aligned_arena);
     }
     
-    model = tflite::GetModel(gesture_model_esp32_2_tflite);
+    model = tflite::GetModel(gesture_model_esp);
     if (model->version() != TFLITE_SCHEMA_VERSION) {
         ESP_LOGE(TAG, "Model schema mismatch!");
         return;
@@ -85,27 +86,21 @@ extern "C" void gesture_model_init() {
 extern "C" int gesture_model_predict(uint8_t* image_data) {
     if (!interpreter || !input) return -1;
 
-    float sum = 0.0f;
-    for (int i = 0; i < 784; i++) sum += (float)image_data[i];
-    float mean = sum / 784.0f;
-
-    float variance = 0.0f;
-    for (int i = 0; i < 784; i++) {
-        float diff = (float)image_data[i] - mean;
-        variance += diff * diff;
-    }
-
-    float std = sqrtf(variance / 784.0f) + 1e-5f;
-
     float in_scale = input->params.scale;
     int in_zero = input->params.zero_point;
 
     for (int i = 0; i < 784; i++) {
+        // --- STEP A: REPLICATE val_transform ---
+        // ToTensor() scales 0-255 to 0.0-1.0
+        // Normalize(0.5, 0.5) math: (val - 0.5) / 0.5
+        // Simplified: (pixel / 255.0 - 0.5) / 0.5
+        float normalized = ((float)image_data[i] / 255.0f - 0.5f) / 0.5f;
 
-        float standardized = ((float)image_data[i] - mean) / std;
+        // --- STEP B: QUANTIZE TO INT8 ---
+        // Formula: q = round(f / scale + zero_point)
+        int32_t quantized = (int32_t)roundf(normalized / in_scale + in_zero);
         
-        int32_t quantized = (int32_t)roundf(standardized / in_scale + in_zero);
-        
+        // --- STEP C: CLAMP ---
         if (quantized > 127) quantized = 127;
         if (quantized < -128) quantized = -128;
         
@@ -114,7 +109,7 @@ extern "C" int gesture_model_predict(uint8_t* image_data) {
 
     if (interpreter->Invoke() != kTfLiteOk) return -1;
 
-    const float TEMP = 0.6364f; // Temperature scaling for model calibration 
+    const float TEMP = 0.3425; // Temperature scaling for model calibration 
     float out_scale = output->params.scale;
     int out_zero = output->params.zero_point;
     
@@ -143,8 +138,13 @@ extern "C" int gesture_model_predict(uint8_t* image_data) {
         }
     }
 
-    ESP_LOGI(TAG, "Percentages: [A: %.1f%%, Q: %.1f%%, T: %.1f%%]", 
-             probs[0]*100, probs[1]*100, probs[2]*100);
-
+    ESP_LOGI(TAG, "Percentages: [A: %.1f%%, C: %.1f%%, Q: %.1f%%, T: %.1f%%]", 
+             probs[0]*100, probs[1]*100, probs[2]*100, probs[3]*100);
+    
+    if (probs[best_class]<pot_get_threshold())
+    {
+        best_class = -1;
+    }
+    
     return best_class;
 }

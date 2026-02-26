@@ -72,7 +72,7 @@ void udp_rx_task(void *pvParameters)
             data_to_send.length = len;
             
             // Send to queue
-            ESP_LOGI(TAG, "Queueing data, queue handle: %p", (void*)inference_queue);
+            // ESP_LOGI(TAG, "Queueing data, queue handle: %p", (void*)inference_queue);
             
             if (xQueueSend(inference_queue, &data_to_send, pdMS_TO_TICKS(100)) != pdTRUE) {
                 ESP_LOGW(TAG, "Queue full or send failed, dropping packet");

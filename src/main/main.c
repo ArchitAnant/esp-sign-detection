@@ -8,6 +8,7 @@
 #include "ml/inference.h"
 #include "utils/utils.h"
 #include "servo/servo_duty.h"
+#include "poten/potentio.h"
 
 #define TAG "APP"
 
@@ -31,10 +32,11 @@ void app_main(void)
     we do a quick 90 flick to check if the servo is alive and 
     working!
     */
+    pot_init();
     servo_init();
-    servo_set_angle(0);
-    servo_set_angle(90);
-    servo_set_angle(0);
+    servo_set_angle(0,1000);
+    servo_set_angle(90,1000);
+    servo_set_angle(0,1000);
     print_ram_usage();
 
     
